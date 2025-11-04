@@ -1,7 +1,15 @@
-import { IsEnum, IsNotEmpty, IsString } from "class-validator";
+import { IsEnum, IsNotEmpty, IsString, IsUUID } from "class-validator";
 import { TaskStatus } from "../task.model";
 
-export class CreateTaskDto {
+export class CreatedTaskDto {
+  /**
+   * Task ID
+   * @example "UUID String"
+   */
+  @IsUUID()
+  @IsNotEmpty()
+  id: string;
+
   /**
    * Task title
    * @example "Code"
