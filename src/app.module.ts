@@ -8,6 +8,8 @@ import { typeOrmConfig } from "./config/database.config";
 import { TypedConfigService } from "./config/typed-config.service";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { Task } from "./tasks/entities/task.entity";
+import { LabelsModule } from "./labels/labels.module";
+import { Label } from "./labels/entities/label.entity";
 
 @Module({
   imports: [
@@ -24,9 +26,10 @@ import { Task } from "./tasks/entities/task.entity";
       inject: [ConfigService],
       useFactory: async (configService: TypedConfigService) => ({
         ...(await configService.get("database")),
-        entities: [Task],
+        entities: [Task, Label],
       }),
     }),
+    LabelsModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: TypedConfigService, useExisting: ConfigService }],

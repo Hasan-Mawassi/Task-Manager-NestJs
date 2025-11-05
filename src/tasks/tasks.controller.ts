@@ -17,14 +17,19 @@ import { CreateTaskDto } from "./dto/create-task.dto";
 import { FindOneParam } from "./dto/find-one-param.dto";
 import { UpdateTaskException } from "./exceptions/update-task-status.exception";
 import { UpdateTaskDto } from "./dto/update-task.dto";
-import { ApiNoContentResponse, ApiNotFoundResponse, ApiOkResponse } from "@nestjs/swagger";
+import {
+  ApiCreatedResponse,
+  ApiNoContentResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+} from "@nestjs/swagger";
 import { CreatedTaskDto } from "./dto/created-task.dto";
 
 @Controller("tasks")
 export class TasksController {
   constructor(private readonly taskService: TasksService) {}
   /**
-   * Create some resource
+   * Get all tasks
    */
   @ApiOkResponse({ type: [CreatedTaskDto], description: "List of tasks" })
   @Get()
@@ -44,6 +49,7 @@ export class TasksController {
   /**
    * Create a task
    */
+  @ApiCreatedResponse({ type: CreatedTaskDto, description: "Created Task" })
   @Post()
   public async createTask(@Body() createTaskDto: CreateTaskDto): Promise<Task> {
     return this.taskService.createTask(createTaskDto);

@@ -1,4 +1,12 @@
-import { IsEnum, IsNotEmpty, IsString } from "class-validator";
+import {
+  ArrayNotEmpty,
+  ArrayUnique,
+  IsArray,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from "class-validator";
 import { TaskStatus } from "../task.model";
 
 export class CreateTaskDto {
@@ -25,4 +33,13 @@ export class CreateTaskDto {
   @IsEnum(TaskStatus)
   @IsNotEmpty()
   status: TaskStatus;
+  /**
+   * Task status
+   * @example ["urgent","today"]
+   */
+  @IsOptional()
+  @IsArray()
+  @ArrayNotEmpty()
+  @ArrayUnique()
+  readonly labelNames?: string[];
 }
