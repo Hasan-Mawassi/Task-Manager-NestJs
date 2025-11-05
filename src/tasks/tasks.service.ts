@@ -1,41 +1,70 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Task } from "./entities/task.entity";
-import { Repository } from "typeorm";
+import { DataSource, Repository } from "typeorm";
 import { CreateTaskDto } from "./dto/create-task.dto";
 import { UpdateTaskDto } from "./dto/update-task.dto";
 import { TaskStatus } from "./task.model";
 import { UpdateTaskException } from "./exceptions/update-task-status.exception";
+import { LabelsService } from "src/labels/labels.service";
 
 @Injectable()
 export class TasksService {
   constructor(
     @InjectRepository(Task)
     private readonly taskRepository: Repository<Task>,
+    private readonly dataSource: DataSource,
+    private readonly labelsService: LabelsService,
   ) {}
 
   public async getAllTasks(): Promise<Task[]> {
-    return this.taskRepository.find();
+    return this.taskRepository.find({ relations: ["labels"] });
   }
 
   public async createTask(createTaskDto: CreateTaskDto): Promise<Task> {
-    return this.taskRepository.save(createTaskDto);
+    const { labelNames = [], ...taskData } = createTaskDto;
+
+    return this.dataSource.transaction(async (manager) => {
+      // 1. ensure labels exist (transactional)
+      const labels = await this.labelsService.getOrCreateLabels(labelNames, manager);
+
+      // 2. create and save task with labels
+      const task = this.taskRepository.create({ ...taskData, labels });
+      return manager.save(task);
+    });
   }
 
   public async getTaskById(id: string): Promise<Task | null> {
-    return this.taskRepository.findOneBy({ id });
+    return this.taskRepository.findOne({ where: { id }, relations: ["labels"] });
   }
 
-  public async updateTask(task: Task, updatedTaskDto: UpdateTaskDto): Promise<Task> {
+  async updateTask(existingTask: Task, updateDto: UpdateTaskDto): Promise<Task> {
     if (
-      task.status &&
-      !this.isValideTransition(task.status, updatedTaskDto.status || TaskStatus.DONE)
+      existingTask.status &&
+      !this.isValideTransition(existingTask.status, updateDto.status || TaskStatus.DONE)
     ) {
       throw new UpdateTaskException();
     }
+    const { labelNames, ...rest } = updateDto;
+    return await this.dataSource.transaction(async (manager) => {
+      // load fresh task with relations
+      const task = await manager.findOne(Task, {
+        where: { id: existingTask.id },
+        relations: ["labels"],
+      });
+      if (!task) {
+        throw new Error(`Task with id ${existingTask.id} not found`);
+      }
+      // update fields
+      Object.assign(task, rest);
 
-    Object.assign(task, updatedTaskDto);
-    return await this.taskRepository.save(task);
+      if (labelNames) {
+        const labels = await this.labelsService.getOrCreateLabels(labelNames, manager);
+        task.labels = labels;
+      }
+
+      return manager.save(task);
+    });
   }
 
   public async deleteTask(id: string): Promise<void> {
