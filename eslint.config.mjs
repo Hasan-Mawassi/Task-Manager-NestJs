@@ -30,7 +30,8 @@ export default tseslint.config(
       quotes: "off",
       "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-floating-promises": "warn",
-      "@typescript-eslint/no-unsafe-argument": "warn",
+      "@typescript-eslint/no-unsafe-argument": "off",
+      "@typescript-eslint/no-unsafe-call": "off",
       // ensure Prettier rule allows double quotes
       "prettier/prettier": ["error", { endOfLine: "auto", singleQuote: false }],
     },

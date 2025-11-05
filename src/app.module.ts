@@ -7,24 +7,25 @@ import { appConfigSchema } from "./config/config.types";
 import { typeOrmConfig } from "./config/database.config";
 import { TypedConfigService } from "./config/typed-config.service";
 import { TypeOrmModule } from "@nestjs/typeorm";
+import { Task } from "./tasks/entities/task.entity";
 
 @Module({
   imports: [
     TasksModule,
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: TypedConfigService) => ({
-        ...configService.get("database"),
-        entities: [],
-      }),
-    }),
     ConfigModule.forRoot({
       load: [typeOrmConfig],
       validationSchema: appConfigSchema,
       validationOptions: {
         abortEarly: true,
       },
+    }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: TypedConfigService) => ({
+        ...(await configService.get("database")),
+        entities: [Task],
+      }),
     }),
   ],
   controllers: [AppController],

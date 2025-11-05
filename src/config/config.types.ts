@@ -1,6 +1,6 @@
-import { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import * as Joi from 'Joi';
-import { AppConfig } from './app.config';
+import { TypeOrmModuleOptions } from "@nestjs/typeorm";
+import * as Joi from "Joi";
+import { AppConfig } from "./app.config";
 
 export interface ConfigTypes {
   app: AppConfig;
@@ -10,7 +10,7 @@ export interface ConfigTypes {
 export const appConfigSchema = Joi.object({
   PORT: Joi.number().port().default(3000),
   DB_TYPE: Joi.string().required(),
-  DB_HOST: Joi.string().default('postgres'),
+  DB_HOST: Joi.string().default("postgres"),
   DB_PORT: Joi.number().required(),
   DB_USERNAME: Joi.string().required(),
   DB_PASSWORD: Joi.string().required(),
