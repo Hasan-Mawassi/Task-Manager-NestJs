@@ -24,6 +24,7 @@ import {
   ApiOkResponse,
 } from "@nestjs/swagger";
 import { CreatedTaskDto } from "./dto/created-task.dto";
+import { ApiResponse } from "src/common/interfaces/api-response.interface";
 
 @Controller("tasks")
 export class TasksController {
@@ -33,8 +34,13 @@ export class TasksController {
    */
   @ApiOkResponse({ type: [CreatedTaskDto], description: "List of tasks" })
   @Get()
-  public async getAllTasks(): Promise<Task[]> {
-    return this.taskService.getAllTasks();
+  public async getAllTasks(): Promise<ApiResponse<Task[]>> {
+    const task = await this.taskService.getAllTasks();
+    return {
+      success: true,
+      message: "Task created successfully",
+      data: task,
+    };
   }
 
   /**
