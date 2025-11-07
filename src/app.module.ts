@@ -10,12 +10,16 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { Task } from "./tasks/entities/task.entity";
 import { LabelsModule } from "./labels/labels.module";
 import { Label } from "./labels/entities/label.entity";
+import { UsersModule } from "./users/users.module";
+import { User } from "./users/entities/user.entity";
+import { appConfig } from "./config/app.config";
+import { authConfig } from "./config/auth.config";
 
 @Module({
   imports: [
     TasksModule,
     ConfigModule.forRoot({
-      load: [typeOrmConfig],
+      load: [typeOrmConfig, appConfig, authConfig],
       validationSchema: appConfigSchema,
       validationOptions: {
         abortEarly: true,
@@ -26,10 +30,11 @@ import { Label } from "./labels/entities/label.entity";
       inject: [ConfigService],
       useFactory: async (configService: TypedConfigService) => ({
         ...(await configService.get("database")),
-        entities: [Task, Label],
+        entities: [Task, Label, User],
       }),
     }),
     LabelsModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: TypedConfigService, useExisting: ConfigService }],

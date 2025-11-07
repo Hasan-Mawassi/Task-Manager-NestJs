@@ -58,7 +58,7 @@ export class TasksController {
   @ApiCreatedResponse({ type: CreatedTaskDto, description: "Created Task" })
   @Post()
   public async createTask(@Body() createTaskDto: CreateTaskDto): Promise<Task> {
-    return this.taskService.createTask(createTaskDto);
+    return this.taskService.createTask(createTaskDto, createTaskDto.userId);
   }
 
   /**

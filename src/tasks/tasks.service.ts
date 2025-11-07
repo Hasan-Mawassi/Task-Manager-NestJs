@@ -21,15 +21,15 @@ export class TasksService {
     return this.taskRepository.find({ relations: ["labels"] });
   }
 
-  public async createTask(createTaskDto: CreateTaskDto): Promise<Task> {
+  public async createTask(createTaskDto: CreateTaskDto, userId: string): Promise<Task> {
     const { labelNames = [], ...taskData } = createTaskDto;
 
     return this.dataSource.transaction(async (manager) => {
       // 1. ensure labels exist (transactional)
-      const labels = await this.labelsService.getOrCreateLabels(labelNames, manager);
+      const labels = await this.labelsService.getOrCreateLabels(labelNames, userId, manager);
 
       // 2. create and save task with labels
-      const task = this.taskRepository.create({ ...taskData, labels });
+      const task = this.taskRepository.create({ ...taskData, labels, userId });
       return manager.save(task);
     });
   }
@@ -59,7 +59,11 @@ export class TasksService {
       Object.assign(task, rest);
 
       if (labelNames) {
-        const labels = await this.labelsService.getOrCreateLabels(labelNames, manager);
+        const labels = await this.labelsService.getOrCreateLabels(
+          labelNames,
+          existingTask.userId,
+          manager,
+        );
         task.labels = labels;
       }
 

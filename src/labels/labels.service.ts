@@ -25,9 +25,9 @@ export class LabelsService {
     return this.labelsRepository.findOneBy({ id });
   }
 
-  async findByNames(names: string[]): Promise<Label[]> {
+  async findByNames(names: string[], userId: string): Promise<Label[]> {
     if (!names?.length) return [];
-    return this.labelsRepository.find({ where: { name: In(names) } });
+    return this.labelsRepository.find({ where: { name: In(names), userId } });
   }
 
   async update(id: string, updateLabelDto: UpdateLabelDto): Promise<Label> {
@@ -44,17 +44,21 @@ export class LabelsService {
   }
 
   // Transactional safe get-or-create (Postgres)
-  async getOrCreateLabels(names: string[], manager?: EntityManager): Promise<Label[]> {
+  async getOrCreateLabels(
+    names: string[],
+    userId: string,
+    manager?: EntityManager,
+  ): Promise<Label[]> {
     if (!names || names.length === 0) return [];
 
     const repo = manager ? manager.getRepository(Label) : this.labelsRepository;
 
     // 1. find existing
-    const existing = await repo.find({ where: { name: In(names) } });
+    const existing = await repo.find({ where: { name: In(names), userId } });
     const existingNames = new Set(existing.map((l) => l.name));
 
     // 2. find which names are missing
-    const toCreate = names.filter((n) => !existingNames.has(n)).map((n) => ({ name: n }));
+    const toCreate = names.filter((n) => !existingNames.has(n)).map((n) => ({ name: n, userId }));
 
     if (toCreate.length) {
       // use query builder upsert (on conflict do nothing) to avoid race conditions
@@ -62,11 +66,11 @@ export class LabelsService {
         .createQueryBuilder()
         .insert()
         .values(toCreate)
-        .onConflict(`("name") DO NOTHING`)
+        .onConflict(`("name", "userId") DO NOTHING`)
         .execute();
     }
 
     // 3. fetch again to return full label entities
-    return repo.find({ where: { name: In(names) } });
+    return repo.find({ where: { name: In(names), userId } });
   }
 }

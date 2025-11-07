@@ -6,6 +6,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  IsUUID,
 } from "class-validator";
 import { TaskStatus } from "../task.model";
 
@@ -42,4 +43,9 @@ export class CreateTaskDto {
   @ArrayNotEmpty()
   @ArrayUnique()
   readonly labelNames?: string[];
+
+  @IsString()
+  @IsNotEmpty()
+  @IsUUID()
+  userId: string;
 }

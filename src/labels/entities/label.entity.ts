@@ -1,7 +1,18 @@
 import { Task } from "src/tasks/entities/task.entity";
-import { Column, Entity, Index, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
+import { User } from "src/users/entities/user.entity";
+import {
+  Column,
+  Entity,
+  Index,
+  JoinColumn,
+  ManyToMany,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  Unique,
+} from "typeorm";
 
 @Entity()
+@Unique(["name", "userId"])
 export class Label {
   @PrimaryGeneratedColumn("uuid")
   id: string;
@@ -17,4 +28,13 @@ export class Label {
 
   @ManyToMany(() => Task, (task) => task.labels)
   tasks: Task[];
+
+  @ManyToOne(() => User, (user) => user.labels, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "userId" })
+  user: User;
+
+  @Column({
+    nullable: true,
+  })
+  userId: string;
 }

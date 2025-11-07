@@ -1,6 +1,15 @@
-import { Column, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from "typeorm";
 import { TaskStatus } from "../task.model";
 import { Label } from "src/labels/entities/label.entity";
+import { User } from "src/users/entities/user.entity";
 
 @Entity()
 export class Task {
@@ -35,4 +44,13 @@ export class Task {
     inverseJoinColumn: { name: "label_id", referencedColumnName: "id" },
   })
   labels: Label[];
+
+  @ManyToOne(() => User, (user) => user.tasks, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "userId" })
+  user: User;
+
+  @Column({
+    nullable: true,
+  })
+  userId: string;
 }
